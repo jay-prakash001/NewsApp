@@ -11,8 +11,8 @@ interface NewsRepo {
 
     suspend fun getNewsOnline(topic: String): Flow<ResultState<NewsModel>>
 
-    suspend fun getNewsOffline(): Flow<ResultState<List<ArticleModel>>>
+    suspend fun getNewsOffline(): Flow<ResultState<List<Article>>>
 
-    suspend fun addNewsOffline(article: ArticleModel): Flow<ResultState<String>>
-    suspend fun deleteNewsOffline(article: ArticleModel): Flow<ResultState<String>>
+    suspend fun addNewsOffline(article: Article): Flow<ResultState<String>>
+    suspend fun deleteNewsOffline(article: Article): Flow<ResultState<String>>
 }

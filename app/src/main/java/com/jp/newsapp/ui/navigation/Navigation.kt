@@ -23,5 +23,7 @@ fun Navigation(modifier: Modifier = Modifier, viewModel: NewsViewModel ) {
                 navController.navigateUp()
             }
         }
+
+
     }
 }

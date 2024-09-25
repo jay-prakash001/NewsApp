@@ -1,5 +1,6 @@
 package com.jp.newsapp.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DownloadForOffline
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.BottomAppBar
@@ -23,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.jp.newsapp.ui.navigation.Routes
 import com.jp.newsapp.viewModel.NewsViewModel
@@ -41,6 +44,11 @@ fun App(modifier: Modifier = Modifier, viewModel: NewsViewModel, navController: 
             TopAppBar(
                 title = { Text(text = title.value, color = Color.White.copy(.5f)) },
                 actions = {
+                    AnimatedVisibility(visible = viewModel.isOffline.collectAsStateWithLifecycle().value ) {
+                        Icon(imageVector = Icons.Default.DownloadForOffline, contentDescription ="offlineMode", tint = Color.Cyan.copy(.5f), modifier = Modifier.size(40.dp) )
+
+
+                    }
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = "Refresh",
@@ -57,6 +65,9 @@ fun App(modifier: Modifier = Modifier, viewModel: NewsViewModel, navController: 
                         tint = Color.Red.copy(.5f), modifier = Modifier
                             .padding(5.dp)
                             .size(40.dp)
+                            .clickable {
+                                screen.value = Routes.Offline
+                            }
                     )
 
                 },
@@ -73,7 +84,7 @@ fun App(modifier: Modifier = Modifier, viewModel: NewsViewModel, navController: 
         }
     ) {
         Column(
-            modifier = Modifier
+            modifier = Modifier.background(Color.Black.copy(.7f))
                 .padding(it)
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
@@ -83,7 +94,7 @@ fun App(modifier: Modifier = Modifier, viewModel: NewsViewModel, navController: 
                     title.value = "Categories"
                     AnimatedComposable {
 
-                    CategoryScreen(modifier = modifier, navController)
+                        CategoryScreen(modifier = modifier, navController)
                     }
                 }
 
@@ -92,7 +103,7 @@ fun App(modifier: Modifier = Modifier, viewModel: NewsViewModel, navController: 
 
                     AnimatedComposable {
 
-                    HomeScreen(modifier = modifier, viewModel = viewModel)
+                        HomeScreen(modifier = modifier, viewModel = viewModel)
                     }
 
                 }
@@ -101,13 +112,21 @@ fun App(modifier: Modifier = Modifier, viewModel: NewsViewModel, navController: 
                     title.value = "Find News"
                     AnimatedComposable {
 
-                    SearchScreen(
-                        modifier = modifier,
-                        viewModel = viewModel,query = "",
-                    ){
+                        SearchScreen(
+                            modifier = modifier,
+                            viewModel = viewModel, query = "",
+                        ) {
+
+                        }
 
                     }
+                }
 
+                Routes.Offline -> {
+                    title.value = "Offline Mode"
+                    AnimatedComposable {
+
+                        OfflineScreen(viewModel = viewModel)
                     }
                 }
             }

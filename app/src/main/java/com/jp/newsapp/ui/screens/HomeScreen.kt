@@ -63,7 +63,9 @@ import kotlin.random.Random
 
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier, viewModel: NewsViewModel) {
-
+    LaunchedEffect(Unit) {
+        viewModel.getNews()
+    }
 
     Column(
         modifier = Modifier
@@ -91,7 +93,7 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: NewsViewModel) {
                         .size(200.dp)
                 )
             } else {
-                NewsCardSlide(state)
+                NewsCardSlide(state, viewModel)
             }
         }
 
@@ -99,7 +101,7 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: NewsViewModel) {
 }
 
 @Composable
-private fun NewsCardSlide(state: NewsState) {
+private fun NewsCardSlide(state: NewsState, viewModel: NewsViewModel) {
 
     val newsList = state.data.articles
 
@@ -157,7 +159,7 @@ private fun NewsCardSlide(state: NewsState) {
                 modifier = Modifier
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
+                verticalArrangement = Arrangement.Center
             ) {
                 SubcomposeAsyncImage(
                     model = newsList[index].urlToImage.toString(),
@@ -169,7 +171,15 @@ private fun NewsCardSlide(state: NewsState) {
                         .scale(imgScale)
                         .shadow(32.dp, RoundedCornerShape(16.dp))
                 )
-                Details(newsList, index, currentPage = pager.currentPage)
+                Details(
+                    modifier = Modifier.fillMaxSize(),
+                    newsList,
+                    index,
+                    currentPage = pager.currentPage
+                ) {
+                    viewModel.addArticle(newsList[index])
+                }
+
             }
         }
 
@@ -180,9 +190,11 @@ private fun NewsCardSlide(state: NewsState) {
 
 @Composable
 private fun Details(
+    modifier: Modifier = Modifier,
     newsList: List<Article>,
     index: Int,
     currentPage: Int,
+    addOffline: () -> Unit
 ) {
     val letterSpace by animateFloatAsState(
         animationSpec = tween(600),
@@ -197,59 +209,56 @@ private fun Details(
         label = ""
     )
     Column(
-        modifier = Modifier
+        modifier = modifier
             .padding(topPadding)
-            .fillMaxWidth()
+            .fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween
     ) {
 
+        Column {
 
-        Text(
-            text = newsList[index].title.toString(),
-            fontSize = 16.sp,
-            letterSpacing = letterSpace.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White.copy(alpha = 0.7f)
-        )
-        Text(
-            text = newsList[index].content.toString(),
-            fontSize = 10.sp,
-            fontWeight = FontWeight.ExtraLight,
-            color = Color.White.copy(alpha = 0.7f)
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (newsList[index].author.toString().length > 20) {
-                Column {
+            Text(
+                text = newsList[index].title.toString(),
+                fontSize = 16.sp,
+                letterSpacing = letterSpace.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White.copy(alpha = 0.7f)
+            )
+            Text(
+                text = newsList[index].content.toString(),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.ExtraLight,
+                color = Color.White.copy(alpha = 0.7f)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (newsList[index].author.toString().length > 20) {
+                    Column {
+                        Text(
+                            text = "${newsList[index].author?.substring(0, 20)}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                        Text(
+                            text = "-${newsList[index].author?.substring(20)}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                    }
+                } else {
                     Text(
-                        text = "${newsList[index].author?.substring(0, 20)}",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White.copy(alpha = 0.7f)
-                    )
-                    Text(
-                        text = "-${newsList[index].author?.substring(20)}",
+                        text = "${newsList[index].author}",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White.copy(alpha = 0.7f)
                     )
                 }
-            } else {
-                Text(
-                    text = "${newsList[index].author}",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.7f)
-                )
+
             }
-            Text(
-                text = "-${newsList[index].source?.name}",
-                fontSize = 10.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White.copy(alpha = 0.7f)
-            )
         }
 
         Row(
@@ -257,17 +266,21 @@ private fun Details(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-        Button(onClick = {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(newsList[index].url.toString()))
-         context.startActivity(intent)
+            Button(onClick = {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(newsList[index].url.toString()))
+                context.startActivity(intent)
 
 
-        }, colors = ButtonDefaults.buttonColors(Color.White.copy(.7f))) {
-            Text(text = "Read More", color = Color.Black.copy(.7f))
-        }
+            }, colors = ButtonDefaults.buttonColors(Color.White.copy(.7f))) {
+                Text(text = "Read More", color = Color.Black.copy(.7f))
+            }
 
-            IconButton(onClick = { }) {
-                Icon(imageVector = Icons.Default.Favorite, contentDescription ="mark as favorite", tint = MaterialTheme.colorScheme.error )
+            IconButton(onClick = addOffline) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = "mark as favorite",
+                    tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(40.dp)
+                )
             }
         }
     }

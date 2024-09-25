@@ -16,7 +16,7 @@ class KtorRepo {
 
         try {
             val news =
-                KtorClient.httpClient.get<NewsModel>("https://newsapi.org/v2/everything?q=$topic&from=$date&sortBy=publishedAt&apiKey=c52a5e39ae374ce3986aac3a23cfe706")
+                KtorClient.httpClient.get<NewsModel>("https://newsapi.org/v2/everything?q=$topic&from=$date&sortBy=publishedAt&apiKey=YOUR_API_KEY")
             emit(ResultState.Success(data = news))
         } catch (e: Exception) {
             emit(ResultState.Error(e.localizedMessage))

@@ -1,5 +1,12 @@
 package com.jp.newsapp.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,17 +46,17 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import com.jp.newsapp.domain.newsModel.Article
 import com.jp.newsapp.viewModel.NewsViewModel
+import kotlin.random.Random
 
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
     viewModel: NewsViewModel,
     query: String = "",
-    back : ()->Unit
+    back: () -> Unit
 ) {
     LaunchedEffect(Unit) {
         if (query.isNotEmpty()) {
@@ -67,7 +74,7 @@ fun SearchScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.DarkGray.copy(.9f)),
-        verticalArrangement = Arrangement.Top,
+        verticalArrangement = Arrangement.spacedBy(5.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -118,12 +125,12 @@ fun SearchScreen(
             )
         }
         item {
-            if (state.isLoading){
+            if (state.isLoading) {
                 ProgressBar(modifier = Modifier.size(200.dp))
             }
         }
         items(state.data.articles) {
-            SearchResCard(article = it)
+            ArticleCard(article = it)
         }
     }
 
@@ -136,32 +143,56 @@ fun SearchScreen(
 
 
 @Composable
-fun SearchResCard(modifier: Modifier = Modifier, article: Article) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            .background(Color.White.copy(.1f))
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            SubcomposeAsyncImage(
-                model = article.urlToImage,
-                contentDescription = "",
-                modifier = Modifier.size(200.dp)
-            )
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.Start
-            ) {
-                Text(text = article.title.toString(), color = Color.White.copy(.8f))
+fun ArticleCard(modifier: Modifier = Modifier, article: Article) {
 
-            }
-        }
-
+    var isVisible by remember {
+        mutableStateOf(false)
     }
+
+    LaunchedEffect(Unit) {
+        isVisible = true
+    }
+    val bgColor by animateColorAsState(
+        targetValue = if (!isVisible)
+            Color(
+                Random.nextInt(),
+                Random.nextInt(),
+                Random.nextInt()
+            ).copy(.1f) else Color(0xFF202020), label = ""
+        , animationSpec = tween(600)
+    )
+    AnimatedVisibility(
+        visible = isVisible,
+        enter = slideInHorizontally(spring(Spring.DampingRatioLowBouncy, Spring.StiffnessLow)),
+        exit = slideOutHorizontally(spring(Spring.DampingRatioLowBouncy, Spring.StiffnessLow))
+    ) {
+        Box(
+            modifier = Modifier.padding(5.dp)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background( bgColor  )
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                SubcomposeAsyncImage(
+                    model = article.urlToImage,
+                    contentDescription = "",
+                    modifier = Modifier.size(200.dp)
+                )
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(text = article.title.toString(), color = Color.White.copy(.8f))
+
+                }
+            }
+
+        }
+    }
+
 }

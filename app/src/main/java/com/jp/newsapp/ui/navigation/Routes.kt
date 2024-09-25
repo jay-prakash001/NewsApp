@@ -12,4 +12,7 @@ sealed class Routes(){
 
     @Serializable
     data object CategoryScreenRoute:Routes()
+
+    @Serializable
+    data object Offline:Routes()
 }
